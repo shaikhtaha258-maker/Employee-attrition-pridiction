@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Employee Attrition Prediction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#10243B;        /* deep navy: header, hero panel, headings */
+    --ink-2:#1B3856;      /* raised navy */
+    --canvas:#ECEFF4;     /* page background */
+    --paper:#FFFFFF;
+    --line:#D8DEE8;
+    --text:#1A2B3E;
+    --muted:#647489;
+    --accent:#2F5D8C;     /* bars, focus, button */
+    --stay:#1F8A5B;  --stay-on-dark:#5FD6A4;
+    --leave:#C8412F; --leave-on-dark:#FF8B77;
+    --display:"Fraunces", Georgia, "Times New Roman", serif;
+    --body:"Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--canvas); color:var(--text); font-family:var(--body); font-size:15px; line-height:1.5; }
+
+  /* ---------- Header ---------- */
+  header { background:var(--ink); color:#fff; padding:40px 24px 76px; }
+  .head-inner { max-width:1120px; margin:0 auto; }
+  header h1 { margin:0; font-family:var(--display); font-weight:600; font-size:clamp(28px, 4vw, 42px); line-height:1.1; letter-spacing:-.01em; }
+  header p { margin:10px 0 0; color:#B5C4D6; font-size:16px; }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width:1120px; margin:-44px auto 48px; padding:0 24px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; }
+  @media (max-width:860px){ .wrap { grid-template-columns:1fr; } header { padding-bottom:64px; } }
+
+  /* ---------- Form panel ---------- */
+  .panel { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:30px; box-shadow:0 12px 32px -18px rgba(16,36,59,.35); }
+  .panel h2 { margin:0 0 4px; font-family:var(--display); font-weight:600; font-size:22px; color:var(--ink); }
+  .panel .sub { margin:0 0 6px; color:var(--muted); font-size:14px; }
+  fieldset { border:0; padding:0; margin:22px 0 0; min-width:0; }
+  legend { padding:0 0 10px; font-weight:600; font-size:14px; color:var(--ink); }
+  .group { border-top:1px solid var(--line); padding-top:18px; margin-top:22px; }
+  .group:first-of-type { margin-top:18px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:520px){ .row { grid-template-columns:1fr; } }
+  label.field, .field-label { display:block; font-size:13px; font-weight:500; color:var(--muted); margin:0 0 6px; }
+  .field-wrap { margin-top:16px; }
+  .row .field-wrap { margin-top:0; }
+  .span-all { grid-column:1 / -1; }
+  .row + .field-wrap, .row + .row, .field-wrap + .row { margin-top:16px; }
+  input[type=number], select {
+    width:100%; height:44px; padding:0 12px; font:inherit; color:var(--text); background:#F8FAFC;
+    border:1px solid var(--line); border-radius:8px; transition:border-color .15s, box-shadow .15s, background .15s;
+  }
+  input[type=number]:hover, select:hover { border-color:#B9C4D4; }
+  input:focus-visible, select:focus-visible { outline:none; border-color:var(--accent); background:#fff; box-shadow:0 0 0 3px rgba(47,93,140,.22); }
+  .money { position:relative; }
+  .money span { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+  .money input { padding-left:28px; }
+
+  /* segmented radios (same form values as before) */
+  .seg { display:grid; gap:6px; }
+  .seg.four { grid-template-columns:repeat(4,1fr); }
+  .seg.two  { grid-template-columns:repeat(2,1fr); }
+  .seg label { position:relative; display:block; cursor:pointer; }
+  .seg input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
+  .seg span { display:flex; align-items:center; justify-content:center; height:44px; border:1px solid var(--line); border-radius:8px; background:#F8FAFC; font-weight:500; color:var(--text); transition:background .15s, color .15s, border-color .15s; }
+  .seg label:hover span { border-color:#B9C4D4; }
+  .seg input:checked + span { background:var(--ink); border-color:var(--ink); color:#fff; }
+  .seg input:focus-visible + span { box-shadow:0 0 0 3px rgba(47,93,140,.35); }
+  .ends { display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:var(--muted); }
+
+  button.cta { margin-top:26px; width:100%; height:50px; border:0; border-radius:10px; background:var(--accent); color:#fff; font:inherit; font-weight:600; font-size:16px; cursor:pointer; transition:background .15s, transform .05s; }
+  button.cta:hover { background:#244C73; }
+  button.cta:active { transform:translateY(1px); }
+  button.cta:focus-visible { outline:none; box-shadow:0 0 0 3px rgba(47,93,140,.35); }
+  .err { margin-top:16px; padding:12px 14px; border-radius:8px; background:#FDECE9; border:1px solid #F2B8AE; color:#8E2A1C; font-size:14px; }
+
+  /* ---------- Right column ---------- */
+  .side { display:grid; gap:24px; }
+
+  /* Hero: prediction gauge */
+  .hero { background:var(--ink-2); border:1px solid rgba(255,255,255,.14); color:#fff; border-radius:18px; padding:30px 30px 26px; box-shadow:0 18px 40px -20px rgba(16,36,59,.7); }
+  .hero h2 { margin:0 0 2px; font-family:var(--display); font-weight:600; font-size:20px; color:#fff; }
+  .hero .sub { margin:0; color:#9FB2C8; font-size:14px; }
+  .gauge { position:relative; max-width:360px; margin:18px auto 0; }
+  .gauge svg { display:block; width:100%; height:auto; overflow:visible; }
+  .gauge .track { stroke:rgba(255,255,255,.14); }
+  .stay  .arc { stroke:var(--stay-on-dark); }
+  .leave .arc { stroke:var(--leave-on-dark); }
+  .gauge .tick { stroke:#fff; opacity:.75; }
+  @keyframes draw { from { stroke-dashoffset:100; } }
+  .gauge .arc { animation:draw 1.1s cubic-bezier(.2,.7,.2,1) both; }
+  @media (prefers-reduced-motion: reduce){ .gauge .arc { animation:none; } }
+  .readout { position:absolute; left:0; right:0; bottom:2px; text-align:center; }
+  .readout .pct { font-family:var(--display); font-weight:600; font-size:clamp(40px, 7vw, 56px); line-height:1; letter-spacing:-.02em; }
+  .readout .cap { margin-top:4px; font-size:13px; color:#9FB2C8; }
+  .scale { display:flex; justify-content:space-between; max-width:360px; margin:6px auto 0; font-size:12px; color:#8196AE; }
+  .verdict { margin:20px 0 0; text-align:center; font-family:var(--display); font-weight:600; font-size:20px; line-height:1.3; }
+  .stay .verdict  { color:var(--stay-on-dark); }
+  .leave .verdict { color:var(--leave-on-dark); }
+  progress { -webkit-appearance:none; appearance:none; display:block; width:100%; border:0; overflow:hidden; }
+  .meter { height:8px; border-radius:4px; background:rgba(255,255,255,.14); max-width:360px; margin:16px auto 0; }
+  .meter::-webkit-progress-bar { background:rgba(255,255,255,.14); border-radius:4px; }
+  .stay .meter::-webkit-progress-value  { background:var(--stay-on-dark);  border-radius:4px; }
+  .leave .meter::-webkit-progress-value { background:var(--leave-on-dark); border-radius:4px; }
+  .stay .meter::-moz-progress-bar  { background:var(--stay-on-dark);  border-radius:4px; }
+  .leave .meter::-moz-progress-bar { background:var(--leave-on-dark); border-radius:4px; }
+  .empty .readout .pct { color:#6F85A0; }
+
+  .cmp { width:100%; margin-top:22px; border-collapse:collapse; font-size:14px; }
+  .cmp th, .cmp td { padding:9px 6px; text-align:left; border-top:1px solid rgba(255,255,255,.12); }
+  .cmp th { color:#9FB2C8; font-weight:500; font-size:13px; }
+  .cmp td:nth-child(2), .cmp th:nth-child(2) { color:#fff; font-weight:600; }
+  .cmp td:last-child, .cmp th:last-child { text-align:right; color:#C6D3E2; }
+  .cmp td:nth-child(2) { text-align:left; }
+
+  /* Model + importance */
+  .model-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .model-head h2 { margin:0; }
+  .acc { font-family:var(--display); font-weight:600; font-size:40px; line-height:1; color:var(--ink); letter-spacing:-.02em; }
+  .acc-cap { margin:6px 0 0; font-size:13px; color:var(--muted); }
+  .imp { margin-top:22px; padding-top:20px; border-top:1px solid var(--line); }
+  .imp h3 { margin:0 0 14px; font-family:var(--display); font-weight:600; font-size:18px; color:var(--ink); }
+  .bar { display:grid; grid-template-columns:132px 1fr 52px; align-items:center; gap:12px; margin:11px 0; font-size:14px; }
+  @media (max-width:420px){ .bar { grid-template-columns:110px 1fr 46px; gap:8px; } }
+  .bar .track { height:10px; background:#E5EAF1; border-radius:5px; }
+  .bar .track::-webkit-progress-bar { background:#E5EAF1; border-radius:5px; }
+  .bar .track::-webkit-progress-value { background:var(--accent); border-radius:5px; }
+  .bar .track::-moz-progress-bar { background:var(--accent); border-radius:5px; }
+  .bar .val { text-align:right; font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .small { margin:16px 0 0; font-size:12.5px; color:var(--muted); }
+</style>
+</head>
+<body>
+{% set pretty = {"Age":"Age","Salary":"Salary","YearsAtCompany":"Years at company","JobSatisfaction":"Job satisfaction","OverTime":"Overtime","JobRole":"Job role"} %}
+{% set state = ("leave" if result.leave else "stay") if result else "empty" %}
+{% set gauge_label = ("Leave probability " ~ result.percent ~ " percent") if result else "No prediction yet" %}
+
+<header>
+  <div class="head-inner">
+    <h1>Employee Attrition Prediction</h1>
+    <p>Predicting whether an employee may leave the organization</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ Form ============ -->
+  <section class="panel" aria-labelledby="form-title">
+    <h2 id="form-title">Employee Details</h2>
+    <p class="sub">Fill in the employee's details to predict Stay or Leave.</p>
+
+    <form method="post">
+      <div class="group">
+        <fieldset>
+          <legend>Profile</legend>
+          <div class="row">
+            <div>
+              <label class="field" for="age">Age</label>
+              <input id="age" type="number" name="age" min="18" max="65" value="{{ form.age }}" required>
+            </div>
+            <div>
+              <label class="field" for="salary">Monthly Salary</label>
+              <div class="money"><span>₹</span>
+                <input id="salary" type="number" name="salary" min="5000" step="500" value="{{ form.salary }}" required>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label class="field" for="years">Years at Company</label>
+              <input id="years" type="number" name="years" min="0" max="40" value="{{ form.years }}" required>
+            </div>
+            <div>
+              <label class="field" for="role">Job Role</label>
+              <select id="role" name="role">
+                {% for r in roles %}<option value="{{ r }}" {{ 'selected' if form.role==r }}>{{ r }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="group">
+        <fieldset>
+          <legend>Work conditions</legend>
+          <div class="row">
+            <div class="span-all">
+              <div class="field-label" id="sat-label">Job Satisfaction</div>
+              <div class="seg four" role="radiogroup" aria-labelledby="sat-label">
+                {% for i in [1,2,3,4] %}
+                <label><input type="radio" name="satisfaction" value="{{ i }}" {{ 'checked' if form.satisfaction==i }}><span>{{ i }}</span></label>
+                {% endfor %}
+              </div>
+              <div class="ends"><span>1 = Low</span><span>4 = High</span></div>
+            </div>
+          </div>
+          <div class="field-wrap">
+            <div class="field-label" id="ot-label">Overtime</div>
+            <div class="seg two" role="radiogroup" aria-labelledby="ot-label">
+              {% for o in ["No","Yes"] %}
+              <label><input type="radio" name="overtime" value="{{ o }}" {{ 'checked' if form.overtime==o }}><span>{{ o }}</span></label>
+              {% endfor %}
+            </div>
+          </div>
+        </fieldset>
+      </div>
+
+      <button class="cta" type="submit">Predict: Stay or Leave</button>
+    </form>
+
+    {% if error %}<div class="err" role="alert">{{ error }}</div>{% endif %}
+  </section>
+
+  <!-- ============ Right column ============ -->
+  <div class="side">
+
+    <section id="result" class="hero {{ state }}" aria-live="polite">
+      <h2>Prediction</h2>
+      <p class="sub">{% if result %}Model output for the employee you entered.{% else %}Your result will appear here.{% endif %}</p>
+
+      <div class="gauge">
+        <svg viewBox="0 0 220 124" role="img" aria-label="{{ gauge_label }}">
+          <path class="track" d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke-width="14" stroke-linecap="round" pathLength="100"/>
+          {% if result and result.percent > 0.5 %}
+          <path class="arc" d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke-width="14" stroke-linecap="round"
+                pathLength="100" stroke-dasharray="100" stroke-dashoffset="{{ 100 - result.percent }}"/>
+          {% endif %}
+          <line class="tick" x1="110" y1="4" x2="110" y2="30" stroke-width="2"/>
+        </svg>
+        <div class="readout">
+          <div class="pct">{% if result %}{{ result.percent }}%{% else %}&ndash;{% endif %}</div>
+          <div class="cap">Leave probability</div>
+        </div>
+      </div>
+      <div class="scale"><span>0%</span><span>50% decision point</span><span>100%</span></div>
+
+      {% if result %}
+      <p class="verdict">{{ 'LEAVE – Employee is likely to leave' if result.leave else 'STAY – Employee is likely to stay' }}</p>
+      <progress class="meter" max="100" value="{{ result.percent }}"></progress>
+
+      {% if compare %}
+      <table class="cmp">
+        <tr><th>Factor</th><th>This employee</th><th>Company average</th></tr>
+        {% for c in compare %}<tr><td>{{ c.label }}</td><td>{{ c.yours }}</td><td>{{ c.avg }}</td></tr>{% endfor %}
+      </table>
+      {% endif %}
+      {% endif %}
+    </section>
+
+    <section class="panel" aria-labelledby="model-title">
+      <div class="model-head">
+        <h2 id="model-title">Model: Random Forest</h2>
+        <div class="acc">{{ accuracy }}%</div>
+      </div>
+      <p class="acc-cap">Test accuracy ({{ total_rows }} employee records)</p>
+
+      <div class="imp">
+        <h3>Feature Importance</h3>
+        {% for name, val in importance.items() %}
+        <div class="bar">
+          <span>{{ pretty.get(name, name) }}</span>
+          <progress class="track" max="100" value="{{ val }}"></progress>
+          <span class="val">{{ val }}%</span>
+        </div>
+        {% endfor %}
+        <p class="small">Shows which factors influence the Stay / Leave prediction the most. Bar length equals the percentage.</p>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+{% if result %}
+<script>
+  // On small screens, bring the result into view after predicting.
+  if (window.matchMedia("(max-width: 860px)").matches) {
+    document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+</script>
+{% endif %}
+</body>
+</html>
